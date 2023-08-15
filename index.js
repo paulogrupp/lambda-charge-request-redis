@@ -8,23 +8,28 @@ const DEFAULT_BALANCE = 100;
 
 exports.chargeRequestRedis = async function (input) {
     const redisClient = await getRedisClient();
-    var remainingBalance = await getBalanceRedis(redisClient, KEY);
-    var charges = getCharges();
-    const isAuthorized = authorizeRequest(remainingBalance, charges);
-    if (!isAuthorized) {
+    try {
+        var remainingBalance = await getBalanceRedis(redisClient, KEY);
+        var charges = getCharges();
+        const isAuthorized = authorizeRequest(remainingBalance, charges);
+        if (!isAuthorized) {
+            return {
+                remainingBalance,
+                isAuthorized,
+                charges: 0,
+            };
+        }
+        remainingBalance = await chargeRedis(redisClient, KEY, charges);
         return {
             remainingBalance,
+            charges,
             isAuthorized,
-            charges: 0,
         };
+    } catch (error) {
+        throw error;
+    } finally {
+        await disconnectRedis(redisClient);
     }
-    remainingBalance = await chargeRedis(redisClient, KEY, charges);
-    await disconnectRedis(redisClient);
-    return {
-        remainingBalance,
-        charges,
-        isAuthorized,
-    };
 };
 
 async function getRedisClient() {
