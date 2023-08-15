@@ -27,22 +27,6 @@ exports.chargeRequestRedis = async function (input) {
     };
 };
 
-exports.resetRedis = async function () {
-    const redisClient = await getRedisClient();
-    const ret = new Promise((resolve, reject) => {
-        redisClient.set(KEY, String(DEFAULT_BALANCE), (err, res) => {
-            if (err) {
-                reject(err);
-            }
-            else {
-                resolve(DEFAULT_BALANCE);
-            }
-        });
-    });
-    await disconnectRedis(redisClient);
-    return ret;
-};
-
 async function getRedisClient() {
     return new Promise((resolve, reject) => {
         try {
